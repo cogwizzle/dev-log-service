@@ -56,10 +56,21 @@ export async function generateReport(date, options = {}) {
     }
   }
 
+  const emptyJira = { commentedIssues: [], createdIssues: [], updatedIssues: [] };
+  const emptyConfluence = { comments: [], createdPages: [], updatedPages: [] };
+
   const [github, jira, confluence] = await Promise.all([
     Promise.resolve(getGithubActivity(date)),
-    getJiraActivity(date),
-    getConfluenceActivity(date),
+    getJiraActivity(date).catch((err) => {
+      // eslint-disable-next-line no-console
+      console.warn(`[report] JIRA fetch failed for ${date}, using empty activity:`, err.message);
+      return emptyJira;
+    }),
+    getConfluenceActivity(date).catch((err) => {
+      // eslint-disable-next-line no-console
+      console.warn(`[report] Confluence fetch failed for ${date}, using empty activity:`, err.message);
+      return emptyConfluence;
+    }),
   ]);
 
   const content = await generateSummary(date, { confluence, github, jira });

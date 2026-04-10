@@ -10,10 +10,17 @@ A local web service that aggregates developer activity from GitHub, JIRA, and Co
 npm install
 ```
 
-2. Copy `.env.example` to `.env` and fill in your credentials:
+2. Run the setup script to auto-populate credentials from the jira-inator and confluence-inator plugins:
 
 ```sh
-cp .env.example .env
+npm run setup
+```
+
+This fills in `JIRA_EMAIL`, `JIRA_API_TOKEN`, and `CONFLUENCE_URL` automatically. You still need to manually add:
+
+```sh
+# Add your Anthropic API key (https://console.anthropic.com)
+echo "ANTHROPIC_API_KEY=sk-ant-..." >> .env
 ```
 
 ### Required environment variables
