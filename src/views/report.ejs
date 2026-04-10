@@ -14,14 +14,11 @@
 
   <main>
     <report-viewer date="<%= date %>">
-      <pre slot="raw"><%= content %></pre>
+      <pre slot="raw"><%- content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') %></pre>
     </report-viewer>
 
     <div class="regenerate">
-      <form method="POST" action="/api/reports/generate" id="regenerate-form"
-            data-date="<%= date %>" data-redirect="true">
-        <button type="submit">Regenerate Report</button>
-      </form>
+      <button id="regenerate-btn" data-date="<%= date %>">Regenerate Report</button>
     </div>
   </main>
 

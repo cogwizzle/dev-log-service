@@ -159,9 +159,68 @@ report-viewer .report-content {
   border-radius: var(--radius);
   font-family: var(--font);
   line-height: 1.7;
-  padding: 1.5rem;
-  white-space: pre-wrap;
-  word-break: break-word;
+  padding: 1.5rem 2rem;
+}
+
+report-viewer .report-content h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+report-viewer .report-content h2 {
+  border-bottom: 1px solid var(--color-border);
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  margin-top: 1.5rem;
+  padding-bottom: 0.25rem;
+}
+
+report-viewer .report-content h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
+report-viewer .report-content p {
+  margin-bottom: 0.75rem;
+}
+
+report-viewer .report-content ul,
+report-viewer .report-content ol {
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+}
+
+report-viewer .report-content li {
+  margin-bottom: 0.25rem;
+}
+
+report-viewer .report-content a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+report-viewer .report-content a:hover {
+  text-decoration: underline;
+}
+
+report-viewer .report-content code {
+  background: #f3f4f6;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  padding: 0.1em 0.4em;
+}
+
+report-viewer .report-content pre {
+  background: #f3f4f6;
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  overflow-x: auto;
+  padding: 1rem;
 }
 
 report-viewer pre[slot="raw"] {

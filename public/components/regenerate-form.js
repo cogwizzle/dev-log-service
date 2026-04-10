@@ -1,20 +1,21 @@
 /**
- * Progressively enhances the regenerate form on the report page.
+ * Progressively enhances the Regenerate Report button on the report page.
  *
- * Intercepts the submit event, calls the API, and reloads the page on success
- * rather than doing a full form POST navigation.
+ * Intercepts the click event, calls POST /api/reports/generate with force=true,
+ * and reloads the page on success.
  */
 document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('regenerate-form');
-  if (!form) return;
+  const btn = document.getElementById('regenerate-btn');
+  if (!btn) return;
 
-  const date = form.dataset.date;
+  const date = btn.dataset.date;
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const button = form.querySelector('button');
-    button.disabled = true;
-    button.textContent = 'Regenerating…';
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    btn.textContent = 'Regenerating…';
+
+    // Remove any previous error message
+    document.getElementById('regenerate-error')?.remove();
 
     try {
       const res = await fetch('/api/reports/generate', {
@@ -30,12 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       window.location.reload();
     } catch (err) {
-      button.disabled = false;
-      button.textContent = 'Regenerate Report';
+      btn.disabled = false;
+      btn.textContent = 'Regenerate Report';
       const msg = document.createElement('p');
+      msg.id = 'regenerate-error';
       msg.className = 'status-message error';
       msg.textContent = err.message;
-      form.after(msg);
+      btn.insertAdjacentElement('afterend', msg);
     }
   });
 });
