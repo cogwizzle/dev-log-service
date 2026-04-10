@@ -5,6 +5,7 @@
   "type": "module",
   "main": "src/server.js",
   "scripts": {
+    "backfill": "node scripts/backfill.js",
     "postinstall": "mkdir -p public/lib && cp node_modules/marked/lib/marked.esm.js public/lib/marked.esm.js",
     "setup": "node scripts/setup-env.js",
     "start": "node src/server.js",

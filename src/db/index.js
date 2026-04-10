@@ -44,8 +44,6 @@ function migrate(database) {
       created_at INTEGER NOT NULL
     );
 
-    DROP TABLE IF EXISTS notes;
-
     CREATE TABLE IF NOT EXISTS notes (
       id         INTEGER PRIMARY KEY AUTOINCREMENT,
       content    TEXT NOT NULL,
