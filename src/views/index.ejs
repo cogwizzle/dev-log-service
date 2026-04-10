@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dev Log</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Dev Log</h1>
+  </header>
+
+  <main>
+    <section class="generate-section">
+      <h2>Generate Report</h2>
+      <report-generator></report-generator>
+    </section>
+
+    <section class="reports-section">
+      <h2>Saved Reports</h2>
+      <% if (reports.length === 0) { %>
+        <p class="empty">No reports yet. Generate one above.</p>
+      <% } else { %>
+        <report-list>
+          <ul slot="items">
+            <% reports.forEach(function(report) { %>
+              <li>
+                <a href="/reports/<%= report.date %>"><%= report.date %></a>
+                <time datetime="<%= new Date(report.created_at).toISOString() %>">
+                  Generated <%= new Date(report.created_at).toLocaleDateString() %>
+                </time>
+              </li>
+            <% }); %>
+          </ul>
+        </report-list>
+      <% } %>
+    </section>
+  </main>
+
+  <script type="module" src="/components/report-generator.js"></script>
+  <script type="module" src="/components/report-list.js"></script>
+</body>
+</html>

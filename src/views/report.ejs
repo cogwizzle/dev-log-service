@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Report: <%= date %></title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header>
+    <a href="/" class="back-link">← All Reports</a>
+    <h1>Report: <%= date %></h1>
+  </header>
+
+  <main>
+    <report-viewer date="<%= date %>">
+      <pre slot="raw"><%= content %></pre>
+    </report-viewer>
+
+    <div class="regenerate">
+      <form method="POST" action="/api/reports/generate" id="regenerate-form"
+            data-date="<%= date %>" data-redirect="true">
+        <button type="submit">Regenerate Report</button>
+      </form>
+    </div>
+  </main>
+
+  <script type="module" src="/components/report-viewer.js"></script>
+  <script type="module" src="/components/regenerate-form.js"></script>
+</body>
+</html>
