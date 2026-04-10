@@ -11,6 +11,7 @@ import AnthropicBedrock from '@anthropic-ai/bedrock-sdk';
  * @property {GithubActivity} github
  * @property {JiraActivity} jira
  * @property {ConfluenceActivity} confluence
+ * @property {string} [notes] - Freeform work notes for the day.
  */
 
 const client = new AnthropicBedrock();
@@ -23,7 +24,7 @@ const client = new AnthropicBedrock();
  * @returns {string}
  */
 function buildPrompt(date, activity) {
-  const { github, jira, confluence } = activity;
+  const { github, jira, confluence, notes } = activity;
 
   const lines = [`Generate a developer activity report in Markdown for ${date}.`];
   lines.push('');
@@ -47,6 +48,15 @@ function buildPrompt(date, activity) {
   lines.push('- Section names should be natural and human-readable, not just field names.');
   lines.push('- Write a concise narrative summary at the top before the sections.');
   lines.push('');
+  if (notes && notes.trim()) {
+    lines.push('## Additional Work Notes');
+    lines.push('');
+    lines.push('The following notes were recorded manually and may include work not captured by the tools above. Incorporate them into the report.');
+    lines.push('');
+    lines.push(notes.trim());
+    lines.push('');
+  }
+
   lines.push('## Raw Activity Data');
   lines.push('');
 

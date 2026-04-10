@@ -4,7 +4,7 @@ import { getGithubActivity } from './github.js';
 import { getJiraActivity } from './jira.js';
 import { getConfluenceActivity } from './confluence.js';
 import { generateSummary } from './summary.js';
-import { saveReport, getReport } from '../db/cache.js';
+import { saveReport, getReport, getNote } from '../db/cache.js';
 
 /**
  * Returns the absolute path to the reports output directory.
@@ -73,7 +73,8 @@ export async function generateReport(date, options = {}) {
     }),
   ]);
 
-  const content = await generateSummary(date, { confluence, github, jira });
+  const note = getNote(date);
+  const content = await generateSummary(date, { confluence, github, jira, notes: note?.content ?? '' });
 
   saveReport(date, content);
   const filePath = writeReportFile(date, content);

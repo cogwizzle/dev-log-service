@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterAll } from 'vitest';
-import { getCached, setCached, saveReport, getReport, listReports } from '../../src/db/cache.js';
+import { getCached, setCached, saveReport, getReport, listReports, getNote, saveNote } from '../../src/db/cache.js';
 import { getDb, closeDb } from '../../src/db/index.js';
 
 beforeEach(() => {
@@ -70,5 +70,25 @@ describe('saveReport / getReport / listReports', () => {
     saveReport('2026-01-02', 'b');
     const reports = listReports();
     expect(reports.map((r) => r.date)).toEqual(['2026-01-03', '2026-01-02', '2026-01-01']);
+  });
+});
+
+describe('saveNote / getNote', () => {
+  it('returns null for missing note', () => {
+    expect(getNote('2026-01-01')).toBeNull();
+  });
+
+  it('saves and retrieves a note', () => {
+    saveNote('2026-01-01', 'Investigated a bug');
+    const note = getNote('2026-01-01');
+    expect(note).not.toBeNull();
+    expect(note.date).toBe('2026-01-01');
+    expect(note.content).toBe('Investigated a bug');
+  });
+
+  it('overwrites an existing note on upsert', () => {
+    saveNote('2026-01-01', 'old note');
+    saveNote('2026-01-01', 'updated note');
+    expect(getNote('2026-01-01').content).toBe('updated note');
   });
 });

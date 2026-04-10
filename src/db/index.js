@@ -43,6 +43,13 @@ function migrate(database) {
       content    TEXT NOT NULL,
       created_at INTEGER NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS notes (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      date       TEXT NOT NULL UNIQUE,
+      content    TEXT NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
   `);
 }
 

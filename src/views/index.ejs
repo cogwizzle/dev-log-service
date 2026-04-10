@@ -17,6 +17,12 @@
       <report-generator></report-generator>
     </section>
 
+    <section class="notes-section">
+      <h2>Work Notes</h2>
+      <p class="section-desc">Add any work not tracked by GitHub, JIRA, or Confluence. Notes are included when generating the report.</p>
+      <work-notes-editor></work-notes-editor>
+    </section>
+
     <section class="reports-section">
       <h2>Saved Reports</h2>
       <% if (reports.length === 0) { %>
@@ -40,5 +46,6 @@
 
   <script type="module" src="/components/report-generator.js"></script>
   <script type="module" src="/components/report-list.js"></script>
+  <script type="module" src="/components/work-notes-editor.js"></script>
 </body>
 </html>

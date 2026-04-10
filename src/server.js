@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import githubRouter from './routes/github.js';
 import jiraRouter from './routes/jira.js';
 import confluenceRouter from './routes/confluence.js';
+import notesRouter from './routes/notes.js';
 import reportsRouter from './routes/reports.js';
 import { startScheduler } from './cron/scheduler.js';
 import { getReport, listReports } from './db/cache.js';
@@ -22,6 +23,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.use('/api/github', githubRouter);
 app.use('/api/jira', jiraRouter);
 app.use('/api/confluence', confluenceRouter);
+app.use('/api/notes', notesRouter);
 app.use('/api/reports', reportsRouter);
 
 // UI routes

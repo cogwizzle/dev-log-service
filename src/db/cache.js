@@ -76,3 +76,31 @@ export function listReports() {
   const db = getDb();
   return db.prepare('SELECT date, created_at FROM reports ORDER BY date DESC').all();
 }
+
+/**
+ * Retrieves the work note for a given date.
+ *
+ * @param {string} date - Date in YYYY-MM-DD format.
+ * @returns {{ date: string, content: string, updated_at: number } | null}
+ */
+export function getNote(date) {
+  const db = getDb();
+  return db.prepare('SELECT date, content, updated_at FROM notes WHERE date = ?').get(date) ?? null;
+}
+
+/**
+ * Inserts or replaces the work note for a given date.
+ *
+ * @param {string} date - Date in YYYY-MM-DD format.
+ * @param {string} content - Freeform note content.
+ */
+export function saveNote(date, content) {
+  const db = getDb();
+  db
+    .prepare(
+      `INSERT INTO notes (date, content, updated_at)
+       VALUES (?, ?, ?)
+       ON CONFLICT(date) DO UPDATE SET content = excluded.content, updated_at = excluded.updated_at`
+    )
+    .run(date, content, Date.now());
+}
