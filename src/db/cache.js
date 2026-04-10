@@ -12,9 +12,11 @@ const CACHE_TTL_MS = 60 * 60 * 1000;
  */
 export function getCached(source, date) {
   const db = getDb();
-  const row = db
-    .prepare('SELECT data, fetched_at FROM activity_cache WHERE source = ? AND date = ?')
-    .get(source, date);
+  const row = /** @type {{ data: string, fetched_at: number } | undefined} */ (
+    db
+      .prepare('SELECT data, fetched_at FROM activity_cache WHERE source = ? AND date = ?')
+      .get(source, date)
+  );
 
   if (!row) return null;
   if (Date.now() - row.fetched_at > CACHE_TTL_MS) return null;
@@ -30,13 +32,11 @@ export function getCached(source, date) {
  */
 export function setCached(source, date, data) {
   const db = getDb();
-  db
-    .prepare(
-      `INSERT INTO activity_cache (source, date, data, fetched_at)
+  db.prepare(
+    `INSERT INTO activity_cache (source, date, data, fetched_at)
        VALUES (?, ?, ?, ?)
        ON CONFLICT(source, date) DO UPDATE SET data = excluded.data, fetched_at = excluded.fetched_at`
-    )
-    .run(source, date, JSON.stringify(data), Date.now());
+  ).run(source, date, JSON.stringify(data), Date.now());
 }
 
 /**
@@ -47,13 +47,11 @@ export function setCached(source, date, data) {
  */
 export function saveReport(date, content) {
   const db = getDb();
-  db
-    .prepare(
-      `INSERT INTO reports (date, content, created_at)
+  db.prepare(
+    `INSERT INTO reports (date, content, created_at)
        VALUES (?, ?, ?)
        ON CONFLICT(date) DO UPDATE SET content = excluded.content, created_at = excluded.created_at`
-    )
-    .run(date, content, Date.now());
+  ).run(date, content, Date.now());
 }
 
 /**
@@ -64,7 +62,9 @@ export function saveReport(date, content) {
  */
 export function getReport(date) {
   const db = getDb();
-  return db.prepare('SELECT date, content, created_at FROM reports WHERE date = ?').get(date) ?? null;
+  return /** @type {{ date: string, content: string, created_at: number } | null} */ (
+    db.prepare('SELECT date, content, created_at FROM reports WHERE date = ?').get(date) ?? null
+  );
 }
 
 /**
@@ -74,7 +74,9 @@ export function getReport(date) {
  */
 export function listReports() {
   const db = getDb();
-  return db.prepare('SELECT date, created_at FROM reports ORDER BY date DESC').all();
+  return /** @type {Array<{ date: string, created_at: number }>} */ (
+    db.prepare('SELECT date, created_at FROM reports ORDER BY date DESC').all()
+  );
 }
 
 /**
@@ -93,9 +95,13 @@ export function listReports() {
  */
 export function getNotesByDate(date) {
   const db = getDb();
-  return db
-    .prepare('SELECT id, date, content, created_at FROM notes WHERE date = ? ORDER BY created_at ASC')
-    .all(date);
+  return /** @type {NoteRow[]} */ (
+    db
+      .prepare(
+        'SELECT id, date, content, created_at FROM notes WHERE date = ? ORDER BY created_at ASC'
+      )
+      .all(date)
+  );
 }
 
 /**
@@ -111,7 +117,7 @@ export function addNote(date, content) {
   const result = db
     .prepare('INSERT INTO notes (content, created_at, date) VALUES (?, ?, ?)')
     .run(content, created_at, date);
-  return { content, created_at, date, id: result.lastInsertRowid };
+  return { content, created_at, date, id: Number(result.lastInsertRowid) };
 }
 
 /**

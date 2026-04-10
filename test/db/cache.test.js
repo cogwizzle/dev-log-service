@@ -1,5 +1,15 @@
 import { describe, it, expect, beforeEach, afterAll } from 'vitest';
-import { getCached, setCached, saveReport, getReport, listReports, addNote, deleteNote, getNotesByDate, getNotesAsText } from '../../src/db/cache.js';
+import {
+  getCached,
+  setCached,
+  saveReport,
+  getReport,
+  listReports,
+  addNote,
+  deleteNote,
+  getNotesByDate,
+  getNotesAsText,
+} from '../../src/db/cache.js';
 import { getDb, closeDb } from '../../src/db/index.js';
 
 beforeEach(() => {
@@ -29,11 +39,9 @@ describe('getCached / setCached', () => {
 
     // Overwrite fetched_at to 2 hours ago so the TTL check fails
     const db = getDb();
-    db
-      .prepare(
-        "UPDATE activity_cache SET fetched_at = ? WHERE source = 'github' AND date = '2026-01-02'"
-      )
-      .run(Date.now() - 2 * 60 * 60 * 1000);
+    db.prepare(
+      "UPDATE activity_cache SET fetched_at = ? WHERE source = 'github' AND date = '2026-01-02'"
+    ).run(Date.now() - 2 * 60 * 60 * 1000);
 
     expect(getCached('github', '2026-01-02')).toBeNull();
   });

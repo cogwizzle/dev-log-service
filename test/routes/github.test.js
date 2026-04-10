@@ -29,7 +29,9 @@ describe('GET /api/github', () => {
   });
 
   it('returns 500 when service throws', async () => {
-    getGithubActivity.mockImplementation(() => { throw new Error('gh not found'); });
+    getGithubActivity.mockImplementation(() => {
+      throw new Error('gh not found');
+    });
     const res = await request(app).get('/api/github?date=2026-01-01');
     expect(res.status).toBe(500);
   });

@@ -68,12 +68,20 @@ export async function generateReport(date, options = {}) {
     }),
     getConfluenceActivity(date).catch((err) => {
       // eslint-disable-next-line no-console
-      console.warn(`[report] Confluence fetch failed for ${date}, using empty activity:`, err.message);
+      console.warn(
+        `[report] Confluence fetch failed for ${date}, using empty activity:`,
+        err.message
+      );
       return emptyConfluence;
     }),
   ]);
 
-  const content = await generateSummary(date, { confluence, github, jira, notes: getNotesAsText(date) });
+  const content = await generateSummary(date, {
+    confluence,
+    github,
+    jira,
+    notes: getNotesAsText(date),
+  });
 
   saveReport(date, content);
   const filePath = writeReportFile(date, content);

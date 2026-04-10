@@ -85,12 +85,12 @@ export function getGithubActivity(date) {
   const authoredRaw = JSON.parse(
     run(`gh search prs --author @me --created ${date} --json url,title,state,repository`) || '[]'
   );
-  activity.authoredPRs = filterAllowedOrgs(authoredRaw);
+  activity.authoredPRs = /** @type {GithubPR[]} */ (filterAllowedOrgs(authoredRaw));
 
   const involvedRaw = JSON.parse(
     run(`gh search prs --involves @me --updated ${date} --json url,title,state,repository`) || '[]'
   );
-  const filteredInvolved = filterAllowedOrgs(involvedRaw);
+  const filteredInvolved = /** @type {GithubPR[]} */ (filterAllowedOrgs(involvedRaw));
   activity.reviewedPRs = filteredInvolved.filter(
     (pr) => pr.state === 'APPROVED' || pr.state === 'CHANGES_REQUESTED'
   );
@@ -106,9 +106,15 @@ export function getGithubActivity(date) {
     repository: c.repository.nameWithOwner,
     sha: c.sha,
   }));
-  activity.commits = filterAllowedOrgs(
-    mappedCommits.map((c) => ({ ...c, repository: { nameWithOwner: c.repository } }))
-  ).map((c) => ({ message: c.message, repository: c.repository.nameWithOwner, sha: c.sha }));
+  activity.commits = /** @type {GithubCommit[]} */ (
+    filterAllowedOrgs(
+      mappedCommits.map((c) => ({ ...c, repository: { nameWithOwner: c.repository } }))
+    ).map((c) => {
+      const item =
+        /** @type {{ message: string, repository: { nameWithOwner: string }, sha: string }} */ (c);
+      return { message: item.message, repository: item.repository.nameWithOwner, sha: item.sha };
+    })
+  );
 
   setCached('github', date, activity);
   return activity;

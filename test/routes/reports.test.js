@@ -71,9 +71,7 @@ describe('POST /api/reports/generate', () => {
 
   it('generates and returns report', async () => {
     generateReport.mockResolvedValue({ content: '# New Report', filePath: '/tmp/2026-01-01.md' });
-    const res = await request(app)
-      .post('/api/reports/generate')
-      .send({ date: '2026-01-01' });
+    const res = await request(app).post('/api/reports/generate').send({ date: '2026-01-01' });
     expect(res.status).toBe(200);
     expect(res.body.content).toBe('# New Report');
     expect(res.body.date).toBe('2026-01-01');
@@ -81,9 +79,7 @@ describe('POST /api/reports/generate', () => {
 
   it('returns 500 when generation fails', async () => {
     generateReport.mockRejectedValue(new Error('API down'));
-    const res = await request(app)
-      .post('/api/reports/generate')
-      .send({ date: '2026-01-01' });
+    const res = await request(app).post('/api/reports/generate').send({ date: '2026-01-01' });
     expect(res.status).toBe(500);
     expect(res.body.error).toContain('API down');
   });

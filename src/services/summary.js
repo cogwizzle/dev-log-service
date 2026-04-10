@@ -51,7 +51,9 @@ function buildPrompt(date, activity) {
   if (notes && notes.trim()) {
     lines.push('## Additional Work Notes');
     lines.push('');
-    lines.push('The following notes were recorded manually and may include work not captured by the tools above. Incorporate them into the report.');
+    lines.push(
+      'The following notes were recorded manually and may include work not captured by the tools above. Incorporate them into the report.'
+    );
     lines.push('');
     lines.push(notes.trim());
     lines.push('');
@@ -111,9 +113,7 @@ function buildPrompt(date, activity) {
   }
   if (confluence.comments.length) {
     lines.push(`**Comments (${confluence.comments.length}):**`);
-    confluence.comments.forEach((c) =>
-      lines.push(`- Comment on [${c.pageTitle}](${c.pageUrl})`)
-    );
+    confluence.comments.forEach((c) => lines.push(`- Comment on [${c.pageTitle}](${c.pageUrl})`));
   }
 
   return lines.join('\n');
@@ -139,5 +139,5 @@ export async function generateSummary(date, activity) {
   });
 
   const block = message.content.find((b) => b.type === 'text');
-  return block?.text ?? '';
+  return block?.type === 'text' ? block.text : '';
 }
