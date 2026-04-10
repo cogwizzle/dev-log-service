@@ -177,7 +177,7 @@ function buildMergePrompt(date, existing, activity) {
     calendar.meetings.forEach((m) => {
       const start = new Date(m.start);
       const end = new Date(m.end);
-      const time = `${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}–${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      const time = `${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })}–${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })}`;
       lines.push(`- ${m.title} (${time})`);
     });
   } else {

@@ -72,7 +72,7 @@ function buildPrompt(date, activity) {
     calendar.meetings.forEach((m) => {
       const start = m.start instanceof Date ? m.start : new Date(/** @type {string} */ (m.start));
       const end = m.end instanceof Date ? m.end : new Date(/** @type {string} */ (m.end));
-      const timeStr = `${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}–${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      const timeStr = `${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })}–${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })}`;
       lines.push(`- ${m.title} (${timeStr})`);
     });
   } else {

@@ -95,13 +95,17 @@ function parseICS(icsData) {
 }
 
 /**
- * Returns true if the meeting starts during work hours (9 AM – 5 PM local time).
+ * Returns true if the meeting starts during work hours (9 AM – 5 PM UTC).
+ *
+ * ICS timestamps are stored in UTC so we compare using UTC hour methods to
+ * avoid the event shifting to the wrong date when the server's local timezone
+ * differs from UTC.
  *
  * @param {Date} start
  * @returns {boolean}
  */
 function isWorkHours(start) {
-  const hour = start.getHours();
+  const hour = start.getUTCHours();
   return hour >= 9 && hour < 17;
 }
 
@@ -109,7 +113,7 @@ function isWorkHours(start) {
  * Fetches and filters Google Calendar events for a given date using the ICS
  * subscription URL configured in CALENDAR_ICS_URL. Results are cached for 1 hour.
  *
- * Only meetings that start during work hours (9 AM – 5 PM local) are included.
+ * Only meetings that start during work hours (9 AM – 5 PM UTC) are included.
  * Returns empty activity (not an error) if no URL is configured.
  *
  * @param {string} date - Date in YYYY-MM-DD format.
