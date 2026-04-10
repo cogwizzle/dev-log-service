@@ -16,18 +16,21 @@ npm install
 npm run setup
 ```
 
-This fills in `JIRA_EMAIL`, `JIRA_API_TOKEN`, and `CONFLUENCE_URL` automatically. You still need to manually add:
+This fills in `JIRA_EMAIL`, `JIRA_API_TOKEN`, and `CONFLUENCE_URL` automatically.
+
+AI summarization uses **AWS Bedrock** with your existing SSO credentials. Make sure your AWS SSO session is active before starting the server:
 
 ```sh
-# Add your Anthropic API key (https://console.anthropic.com)
-echo "ANTHROPIC_API_KEY=sk-ant-..." >> .env
+aws sso login --profile twilio-devex-bedrock
 ```
 
 ### Required environment variables
 
 | Variable          | Description                                              |
 | ----------------- | -------------------------------------------------------- |
-| `ANTHROPIC_API_KEY` | Anthropic API key for AI summarization                 |
+| `AWS_PROFILE`     | AWS SSO profile name for Bedrock access                  |
+| `AWS_REGION`      | AWS region for Bedrock (e.g. `us-west-2`)                |
+| `BEDROCK_MODEL_ID` | Bedrock model ID (defaults to `us.anthropic.claude-sonnet-4-5-20251001-v1:0`) |
 | `CONFLUENCE_URL`  | Base URL of your Confluence instance                     |
 | `GITHUB_ORGS`     | Comma-separated list of GitHub orgs to scope activity to |
 | `GITHUB_TOKEN`    | GitHub personal access token (also used by `gh` CLI)     |

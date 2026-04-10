@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
+import AnthropicBedrock from '@anthropic-ai/bedrock-sdk';
 
 /**
  * @typedef {import('./github.js').GithubActivity} GithubActivity
@@ -13,7 +13,7 @@ import Anthropic from '@anthropic-ai/sdk';
  * @property {ConfluenceActivity} confluence
  */
 
-const client = new Anthropic();
+const client = new AnthropicBedrock();
 
 /**
  * Builds the prompt text describing all activity for the given date.
@@ -125,7 +125,7 @@ export async function generateSummary(date, activity) {
   const message = await client.messages.create({
     max_tokens: 2048,
     messages: [{ content: prompt, role: 'user' }],
-    model: 'claude-sonnet-4-6',
+    model: process.env.BEDROCK_MODEL_ID || 'us.anthropic.claude-sonnet-4-20250514-v1:0',
   });
 
   const block = message.content.find((b) => b.type === 'text');

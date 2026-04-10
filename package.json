@@ -17,7 +17,7 @@
     "format:check": "prettier --check src test"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0",
+    "@anthropic-ai/bedrock-sdk": "^0.28.1",
     "better-sqlite3": "^11.0.0",
     "dotenv": "^16.4.0",
     "ejs": "^3.1.10",
