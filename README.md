@@ -1,5 +1,8 @@
 # dev-log-service
 
+[![CI](https://github.com/cogwizzle/dev-log-service/actions/workflows/ci.yml/badge.svg)](https://github.com/cogwizzle/dev-log-service/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/cogwizzle/dev-log-service/graph/badge.svg)](https://codecov.io/gh/cogwizzle/dev-log-service)
+
 A local web service that aggregates developer activity from GitHub, JIRA, and Confluence, then uses Claude AI to generate daily Markdown activity reports.
 
 ## Setup
