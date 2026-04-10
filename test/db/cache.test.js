@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, afterAll } from 'vitest';
-import { getCached, setCached, saveReport, getReport, listReports, getNote, saveNote } from '../../src/db/cache.js';
+import { getCached, setCached, saveReport, getReport, listReports, addNote, deleteNote, getNotesByDate, getNotesAsText } from '../../src/db/cache.js';
 import { getDb, closeDb } from '../../src/db/index.js';
 
 beforeEach(() => {
   // Clear all tables between tests for a clean slate
   const db = getDb();
-  db.exec('DELETE FROM activity_cache; DELETE FROM reports;');
+  db.exec('DELETE FROM activity_cache; DELETE FROM notes; DELETE FROM reports;');
 });
 
 afterAll(() => {
@@ -73,22 +73,47 @@ describe('saveReport / getReport / listReports', () => {
   });
 });
 
-describe('saveNote / getNote', () => {
-  it('returns null for missing note', () => {
-    expect(getNote('2026-01-01')).toBeNull();
+describe('addNote / deleteNote / getNotesByDate / getNotesAsText', () => {
+  it('returns empty array when no notes exist', () => {
+    expect(getNotesByDate('2026-01-01')).toEqual([]);
   });
 
-  it('saves and retrieves a note', () => {
-    saveNote('2026-01-01', 'Investigated a bug');
-    const note = getNote('2026-01-01');
-    expect(note).not.toBeNull();
-    expect(note.date).toBe('2026-01-01');
-    expect(note.content).toBe('Investigated a bug');
+  it('adds and retrieves notes for a date', () => {
+    addNote('2026-01-01', 'Investigated a bug');
+    addNote('2026-01-01', 'Reviewed PR');
+    const notes = getNotesByDate('2026-01-01');
+    expect(notes).toHaveLength(2);
+    expect(notes[0].content).toBe('Investigated a bug');
+    expect(notes[1].content).toBe('Reviewed PR');
+    expect(notes[0].date).toBe('2026-01-01');
   });
 
-  it('overwrites an existing note on upsert', () => {
-    saveNote('2026-01-01', 'old note');
-    saveNote('2026-01-01', 'updated note');
-    expect(getNote('2026-01-01').content).toBe('updated note');
+  it('deletes a note by id', () => {
+    const note = addNote('2026-01-01', 'To be deleted');
+    expect(getNotesByDate('2026-01-01')).toHaveLength(1);
+    const deleted = deleteNote(note.id);
+    expect(deleted).toBe(true);
+    expect(getNotesByDate('2026-01-01')).toHaveLength(0);
+  });
+
+  it('returns false when deleting a nonexistent id', () => {
+    expect(deleteNote(99999)).toBe(false);
+  });
+
+  it('does not return notes from other dates', () => {
+    addNote('2026-01-01', 'Note A');
+    addNote('2026-01-02', 'Note B');
+    expect(getNotesByDate('2026-01-01')).toHaveLength(1);
+    expect(getNotesByDate('2026-01-02')).toHaveLength(1);
+  });
+
+  it('formats notes as bullet list text', () => {
+    addNote('2026-01-01', 'First note');
+    addNote('2026-01-01', 'Second note');
+    expect(getNotesAsText('2026-01-01')).toBe('- First note\n- Second note');
+  });
+
+  it('returns empty string when no notes exist', () => {
+    expect(getNotesAsText('2026-01-01')).toBe('');
   });
 });

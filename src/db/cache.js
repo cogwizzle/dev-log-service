@@ -78,29 +78,63 @@ export function listReports() {
 }
 
 /**
- * Retrieves the work note for a given date.
+ * @typedef {Object} NoteRow
+ * @property {number} id
+ * @property {string} date
+ * @property {string} content
+ * @property {number} created_at
+ */
+
+/**
+ * Returns all work notes for a given date, ordered by creation time ascending.
  *
  * @param {string} date - Date in YYYY-MM-DD format.
- * @returns {{ date: string, content: string, updated_at: number } | null}
+ * @returns {NoteRow[]}
  */
-export function getNote(date) {
+export function getNotesByDate(date) {
   const db = getDb();
-  return db.prepare('SELECT date, content, updated_at FROM notes WHERE date = ?').get(date) ?? null;
+  return db
+    .prepare('SELECT id, date, content, created_at FROM notes WHERE date = ? ORDER BY created_at ASC')
+    .all(date);
 }
 
 /**
- * Inserts or replaces the work note for a given date.
+ * Inserts a single work note for a given date.
  *
  * @param {string} date - Date in YYYY-MM-DD format.
- * @param {string} content - Freeform note content.
+ * @param {string} content - The note text.
+ * @returns {NoteRow} The newly created row.
  */
-export function saveNote(date, content) {
+export function addNote(date, content) {
   const db = getDb();
-  db
-    .prepare(
-      `INSERT INTO notes (date, content, updated_at)
-       VALUES (?, ?, ?)
-       ON CONFLICT(date) DO UPDATE SET content = excluded.content, updated_at = excluded.updated_at`
-    )
-    .run(date, content, Date.now());
+  const created_at = Date.now();
+  const result = db
+    .prepare('INSERT INTO notes (content, created_at, date) VALUES (?, ?, ?)')
+    .run(content, created_at, date);
+  return { content, created_at, date, id: result.lastInsertRowid };
+}
+
+/**
+ * Deletes a work note by its ID.
+ *
+ * @param {number} id - The note ID.
+ * @returns {boolean} True if a row was deleted.
+ */
+export function deleteNote(id) {
+  const db = getDb();
+  const result = db.prepare('DELETE FROM notes WHERE id = ?').run(id);
+  return result.changes > 0;
+}
+
+/**
+ * Returns all notes for a date as a single newline-separated string,
+ * suitable for inclusion in the AI summary prompt.
+ *
+ * @param {string} date - Date in YYYY-MM-DD format.
+ * @returns {string}
+ */
+export function getNotesAsText(date) {
+  return getNotesByDate(date)
+    .map((n) => `- ${n.content}`)
+    .join('\n');
 }

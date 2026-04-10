@@ -11,12 +11,13 @@ import { getGithubActivity } from '../../src/services/github.js';
 import { getJiraActivity } from '../../src/services/jira.js';
 import { getConfluenceActivity } from '../../src/services/confluence.js';
 import { generateSummary } from '../../src/services/summary.js';
-import { getReport, saveReport } from '../../src/db/cache.js';
+import { getNotesAsText, getReport, saveReport } from '../../src/db/cache.js';
 import fs from 'fs';
 import { generateReport, previousBusinessDay } from '../../src/services/report.js';
 
 beforeEach(() => {
   vi.clearAllMocks();
+  getNotesAsText.mockReturnValue('');
   getReport.mockReturnValue(null);
   fs.mkdirSync = vi.fn();
   fs.writeFileSync = vi.fn();

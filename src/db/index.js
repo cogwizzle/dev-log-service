@@ -44,11 +44,13 @@ function migrate(database) {
       created_at INTEGER NOT NULL
     );
 
+    DROP TABLE IF EXISTS notes;
+
     CREATE TABLE IF NOT EXISTS notes (
       id         INTEGER PRIMARY KEY AUTOINCREMENT,
-      date       TEXT NOT NULL UNIQUE,
       content    TEXT NOT NULL,
-      updated_at INTEGER NOT NULL
+      created_at INTEGER NOT NULL,
+      date       TEXT NOT NULL
     );
   `);
 }

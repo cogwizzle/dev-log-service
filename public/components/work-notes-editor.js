@@ -1,109 +1,215 @@
 /**
  * <work-notes-editor> — Light DOM web component.
  *
- * Renders a date picker and textarea for recording freeform work notes for a
- * specific date. Loads any existing note when the date changes, and saves on
- * button click. The selected date stays in sync with the report generator's
- * date input when both are on the same page.
+ * Renders a date picker, a text input to add bullet-point work notes, and a
+ * table listing all notes for the selected date. Each row has a delete button
+ * and supports inline editing (click the note text to edit in place).
  */
 class WorkNotesEditor extends HTMLElement {
   connectedCallback() {
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
+    this._date = today;
 
     this.innerHTML = `
-      <form id="notes-form">
+      <div class="notes-date-row">
         <label>
           Date
-          <input type="date" name="date" value="${yesterday}" required />
+          <input type="date" id="notes-date-input" value="${today}" />
         </label>
-        <label>
-          Notes
-          <textarea name="content" rows="6" placeholder="e.g. Investigated LAB-1234 root cause, had design sync on X feature, reviewed PRD for Y..."></textarea>
-        </label>
-        <button type="submit">Save Notes</button>
-      </form>
+      </div>
+      <div class="notes-add-row">
+        <input type="text" id="notes-text-input" placeholder="Add a work note…" autocomplete="off" />
+        <button id="notes-add-btn">Add</button>
+      </div>
       <p class="status-message" aria-live="polite"></p>
+      <div class="notes-table-wrap">
+        <table class="notes-table">
+          <thead>
+            <tr>
+              <th>Note</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="notes-tbody"></tbody>
+        </table>
+        <p class="notes-empty" hidden>No notes for this date.</p>
+      </div>
     `;
 
-    const form = this.querySelector('form');
-    const dateInput = form.querySelector('input[name="date"]');
-    const textarea = form.querySelector('textarea');
+    this._dateInput = this.querySelector('#notes-date-input');
+    this._textInput = this.querySelector('#notes-text-input');
+    this._addBtn = this.querySelector('#notes-add-btn');
+    this._tbody = this.querySelector('#notes-tbody');
+    this._empty = this.querySelector('.notes-empty');
+    this._status = this.querySelector('.status-message');
 
-    // Load note whenever the date changes
-    dateInput.addEventListener('change', () => this._load(dateInput.value, textarea));
+    this._dateInput.addEventListener('change', () => {
+      this._date = this._dateInput.value;
+      this._load();
+    });
 
-    // Keep in sync with the report-generator date input if present
-    const reportDateInput = document.querySelector('report-generator input[type="date"]');
-    if (reportDateInput) {
-      reportDateInput.addEventListener('change', () => {
-        dateInput.value = reportDateInput.value;
-        this._load(dateInput.value, textarea);
-      });
-    }
+    this._addBtn.addEventListener('click', () => this._add());
+    this._textInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') this._add();
+    });
 
-    form.addEventListener('submit', (e) => this._onSubmit(e));
-
-    // Load initial note
-    this._load(yesterday, textarea);
+    this._load();
   }
 
   /**
-   * Fetches and populates the note for the given date.
-   *
-   * @param {string} date
-   * @param {HTMLTextAreaElement} textarea
+   * Fetches notes for the current date and re-renders the table.
    */
-  async _load(date, textarea) {
+  async _load() {
     try {
-      const res = await fetch(`/api/notes/${date}`);
+      const res = await fetch(`/api/notes/${this._date}`);
       if (!res.ok) return;
-      const data = await res.json();
-      textarea.value = data.content;
+      const { notes } = await res.json();
+      this._render(notes);
     } catch {
-      // Silently ignore load failures
+      // Silently ignore
     }
   }
 
   /**
-   * Saves the note via PUT /api/notes/:date.
+   * Renders the notes list into the table body.
    *
-   * @param {SubmitEvent} e
+   * @param {Array<{ id: number, content: string }>} notes
    */
-  async _onSubmit(e) {
-    e.preventDefault();
-    const form = /** @type {HTMLFormElement} */ (e.target);
-    const status = this.querySelector('.status-message');
-    const button = form.querySelector('button');
-    const date = form.querySelector('input[name="date"]').value;
-    const content = form.querySelector('textarea[name="content"]').value;
+  _render(notes) {
+    this._tbody.innerHTML = '';
+    this._empty.hidden = notes.length > 0;
+    this.querySelector('.notes-table').hidden = notes.length === 0;
 
-    button.disabled = true;
-    button.textContent = 'Saving…';
-    status.textContent = '';
-    status.className = 'status-message';
+    notes.forEach((note) => {
+      const tr = document.createElement('tr');
+      tr.dataset.id = String(note.id);
 
+      const tdContent = document.createElement('td');
+      tdContent.className = 'note-content';
+      tdContent.textContent = note.content;
+      tdContent.title = 'Click to edit';
+
+      // Inline edit on click
+      tdContent.addEventListener('click', () => this._startEdit(tdContent, note));
+
+      const tdAction = document.createElement('td');
+      tdAction.className = 'note-action';
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn-delete';
+      delBtn.textContent = '×';
+      delBtn.setAttribute('aria-label', 'Delete note');
+      delBtn.addEventListener('click', () => this._delete(note.id, tr));
+      tdAction.appendChild(delBtn);
+
+      tr.appendChild(tdContent);
+      tr.appendChild(tdAction);
+      this._tbody.appendChild(tr);
+    });
+  }
+
+  /**
+   * Adds a new note from the text input.
+   */
+  async _add() {
+    const content = this._textInput.value.trim();
+    if (!content) return;
+
+    this._addBtn.disabled = true;
     try {
-      const res = await fetch(`/api/notes/${date}`, {
+      const res = await fetch(`/api/notes/${this._date}`, {
         body: JSON.stringify({ content }),
         headers: { 'Content-Type': 'application/json' },
-        method: 'PUT',
+        method: 'POST',
       });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Save failed');
-      }
-
-      status.textContent = 'Notes saved.';
-      status.className = 'status-message success';
-      setTimeout(() => { status.textContent = ''; }, 2000);
+      if (!res.ok) throw new Error('Failed to add note');
+      this._textInput.value = '';
+      await this._load();
     } catch (err) {
-      status.textContent = err.message;
-      status.className = 'status-message error';
+      this._showStatus(err.message, 'error');
     } finally {
-      button.disabled = false;
-      button.textContent = 'Save Notes';
+      this._addBtn.disabled = false;
+      this._textInput.focus();
     }
+  }
+
+  /**
+   * Deletes a note by ID and removes its row from the table.
+   *
+   * @param {number} id
+   * @param {HTMLTableRowElement} tr
+   */
+  async _delete(id, tr) {
+    try {
+      const res = await fetch(`/api/notes/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete note');
+      tr.remove();
+      const remaining = this._tbody.querySelectorAll('tr').length;
+      this._empty.hidden = remaining > 0;
+      this.querySelector('.notes-table').hidden = remaining === 0;
+    } catch (err) {
+      this._showStatus(err.message, 'error');
+    }
+  }
+
+  /**
+   * Replaces the note cell with an input for inline editing.
+   * On confirm (Enter or blur), deletes the old note and inserts the new one.
+   *
+   * @param {HTMLTableCellElement} td
+   * @param {{ id: number, content: string }} note
+   */
+  _startEdit(td, note) {
+    if (td.querySelector('input')) return; // already editing
+
+    const original = note.content;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = original;
+    input.className = 'note-edit-input';
+    td.textContent = '';
+    td.appendChild(input);
+    input.focus();
+    input.select();
+
+    const confirm = async () => {
+      const newContent = input.value.trim();
+      if (!newContent || newContent === original) {
+        td.textContent = original;
+        td.title = 'Click to edit';
+        td.addEventListener('click', () => this._startEdit(td, note));
+        return;
+      }
+      try {
+        await fetch(`/api/notes/${note.id}`, { method: 'DELETE' });
+        await fetch(`/api/notes/${this._date}`, {
+          body: JSON.stringify({ content: newContent }),
+          headers: { 'Content-Type': 'application/json' },
+          method: 'POST',
+        });
+        await this._load();
+      } catch (err) {
+        this._showStatus(err.message, 'error');
+        td.textContent = original;
+      }
+    };
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); confirm(); }
+      if (e.key === 'Escape') { td.textContent = original; td.title = 'Click to edit'; }
+    });
+    input.addEventListener('blur', confirm);
+  }
+
+  /**
+   * Displays a status message that auto-clears after 2 seconds.
+   *
+   * @param {string} message
+   * @param {'error' | 'success'} type
+   */
+  _showStatus(message, type) {
+    this._status.textContent = message;
+    this._status.className = `status-message ${type}`;
+    setTimeout(() => { this._status.textContent = ''; this._status.className = 'status-message'; }, 2000);
   }
 }
 
