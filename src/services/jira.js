@@ -61,7 +61,7 @@ async function jiraFetch(path, params = {}) {
  */
 async function searchIssues(jql, maxResults = 100) {
   const data = /** @type {{ issues?: Array<Record<string, unknown>> }} */ (
-    await jiraFetch('/rest/api/3/search', {
+    await jiraFetch('/rest/api/3/search/jql', {
       fields: 'summary,status,issuetype,comment,created,updated,assignee',
       jql,
       maxResults: String(maxResults),
