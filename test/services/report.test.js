@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+vi.mock('../../src/services/calendar.js');
 vi.mock('../../src/services/github.js');
 vi.mock('../../src/services/jira.js');
 vi.mock('../../src/services/confluence.js');
@@ -7,6 +8,7 @@ vi.mock('../../src/services/summary.js');
 vi.mock('../../src/db/cache.js');
 vi.mock('fs');
 
+import { getCalendarActivity } from '../../src/services/calendar.js';
 import { getGithubActivity } from '../../src/services/github.js';
 import { getJiraActivity } from '../../src/services/jira.js';
 import { getConfluenceActivity } from '../../src/services/confluence.js';
@@ -23,6 +25,7 @@ beforeEach(() => {
   fs.writeFileSync = vi.fn();
 });
 
+const emptyCalendar = { meetingCount: 0, meetings: [], totalHours: 0 };
 const emptyGithub = { authoredPRs: [], commentedPRs: [], commits: [], reviewedPRs: [] };
 const emptyJira = { commentedIssues: [], createdIssues: [], updatedIssues: [] };
 const emptyConfluence = { comments: [], createdPages: [], updatedPages: [] };
@@ -54,6 +57,7 @@ describe('generateReport', () => {
   });
 
   it('fetches all sources and generates summary', async () => {
+    getCalendarActivity.mockResolvedValue(emptyCalendar);
     getGithubActivity.mockReturnValue(emptyGithub);
     getJiraActivity.mockResolvedValue(emptyJira);
     getConfluenceActivity.mockResolvedValue(emptyConfluence);
@@ -66,6 +70,7 @@ describe('generateReport', () => {
 
   it('force-regenerates even when cached report exists', async () => {
     getReport.mockReturnValue({ content: '# Old', date: '2026-01-01' });
+    getCalendarActivity.mockResolvedValue(emptyCalendar);
     getGithubActivity.mockReturnValue(emptyGithub);
     getJiraActivity.mockResolvedValue(emptyJira);
     getConfluenceActivity.mockResolvedValue(emptyConfluence);

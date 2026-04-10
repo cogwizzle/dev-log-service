@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { getCalendarActivity } from './calendar.js';
 import { getGithubActivity } from './github.js';
 import { getJiraActivity } from './jira.js';
 import { getConfluenceActivity } from './confluence.js';
@@ -58,8 +59,9 @@ export async function generateReport(date, options = {}) {
 
   const emptyJira = { commentedIssues: [], createdIssues: [], updatedIssues: [] };
   const emptyConfluence = { comments: [], createdPages: [], updatedPages: [] };
+  const emptyCalendar = { meetingCount: 0, meetings: [], totalHours: 0 };
 
-  const [github, jira, confluence] = await Promise.all([
+  const [github, jira, confluence, calendar] = await Promise.all([
     Promise.resolve(getGithubActivity(date)),
     getJiraActivity(date).catch((err) => {
       // eslint-disable-next-line no-console
@@ -74,9 +76,18 @@ export async function generateReport(date, options = {}) {
       );
       return emptyConfluence;
     }),
+    getCalendarActivity(date).catch((err) => {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[report] Calendar fetch failed for ${date}, using empty activity:`,
+        err.message
+      );
+      return emptyCalendar;
+    }),
   ]);
 
   const content = await generateSummary(date, {
+    calendar,
     confluence,
     github,
     jira,

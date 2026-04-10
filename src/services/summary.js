@@ -4,13 +4,15 @@ import AnthropicBedrock from '@anthropic-ai/bedrock-sdk';
  * @typedef {import('./github.js').GithubActivity} GithubActivity
  * @typedef {import('./jira.js').JiraActivity} JiraActivity
  * @typedef {import('./confluence.js').ConfluenceActivity} ConfluenceActivity
+ * @typedef {import('./calendar.js').CalendarActivity} CalendarActivity
  */
 
 /**
  * @typedef {Object} ActivityBundle
+ * @property {CalendarActivity} calendar
+ * @property {ConfluenceActivity} confluence
  * @property {GithubActivity} github
  * @property {JiraActivity} jira
- * @property {ConfluenceActivity} confluence
  * @property {string} [notes] - Freeform work notes for the day.
  */
 
@@ -24,7 +26,7 @@ const client = new AnthropicBedrock();
  * @returns {string}
  */
 function buildPrompt(date, activity) {
-  const { github, jira, confluence, notes } = activity;
+  const { calendar, confluence, github, jira, notes } = activity;
 
   const lines = [`Generate a developer activity report in Markdown for ${date}.`];
   lines.push('');
@@ -60,6 +62,22 @@ function buildPrompt(date, activity) {
   }
 
   lines.push('## Raw Activity Data');
+  lines.push('');
+
+  lines.push('### Calendar');
+  if (calendar.meetingCount > 0) {
+    lines.push(
+      `**Meetings (${calendar.meetingCount}, ${calendar.totalHours}h total in work hours):**`
+    );
+    calendar.meetings.forEach((m) => {
+      const start = m.start instanceof Date ? m.start : new Date(/** @type {string} */ (m.start));
+      const end = m.end instanceof Date ? m.end : new Date(/** @type {string} */ (m.end));
+      const timeStr = `${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}–${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      lines.push(`- ${m.title} (${timeStr})`);
+    });
+  } else {
+    lines.push('No meetings recorded for this date.');
+  }
   lines.push('');
 
   lines.push('### GitHub');

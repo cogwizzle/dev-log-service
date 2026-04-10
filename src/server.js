@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import calendarRouter from './routes/calendar.js';
 import githubRouter from './routes/github.js';
 import jiraRouter from './routes/jira.js';
 import confluenceRouter from './routes/confluence.js';
@@ -20,6 +21,7 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 // API routes
+app.use('/api/calendar', calendarRouter);
 app.use('/api/github', githubRouter);
 app.use('/api/jira', jiraRouter);
 app.use('/api/confluence', confluenceRouter);
