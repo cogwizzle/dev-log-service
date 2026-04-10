@@ -24,10 +24,13 @@ export function getDb() {
 /**
  * Runs all schema migrations against the provided database.
  *
+ * Throws if the migration SQL contains any DROP TABLE statement, preventing
+ * accidental data loss on server restart.
+ *
  * @param {Database.Database} database - The database to migrate.
  */
 function migrate(database) {
-  database.exec(`
+  const sql = `
     CREATE TABLE IF NOT EXISTS activity_cache (
       id        INTEGER PRIMARY KEY AUTOINCREMENT,
       source    TEXT NOT NULL,
@@ -50,7 +53,13 @@ function migrate(database) {
       created_at INTEGER NOT NULL,
       date       TEXT NOT NULL
     );
-  `);
+  `;
+
+  if (/DROP\s+TABLE/i.test(sql)) {
+    throw new Error('Migration SQL contains DROP TABLE — aborting to prevent data loss.');
+  }
+
+  database.exec(sql);
 }
 
 /**
