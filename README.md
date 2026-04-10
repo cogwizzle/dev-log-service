@@ -32,6 +32,7 @@ aws sso login --profile twilio-devex-bedrock
 | Variable          | Description                                              |
 | ----------------- | -------------------------------------------------------- |
 | `AWS_PROFILE`     | AWS SSO profile name for Bedrock access                  |
+| `CALENDAR_ICS_URL` | Google Calendar ICS subscription URL                   |
 | `AWS_REGION`      | AWS region for Bedrock (e.g. `us-west-2`)                |
 | `BEDROCK_MODEL_ID` | Bedrock model ID (defaults to `us.anthropic.claude-sonnet-4-5-20251001-v1:0`) |
 | `CONFLUENCE_URL`  | Base URL of your Confluence instance                     |
