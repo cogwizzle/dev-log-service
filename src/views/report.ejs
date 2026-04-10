@@ -7,12 +7,13 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <header>
-    <a href="/" class="back-link">← All Reports</a>
-    <h1>Report: <%= date %></h1>
-  </header>
+  <%- include('partials/header', { page: 'reports' }) %>
 
   <main>
+    <div class="page-header">
+      <a href="/" class="back-link">← All Reports</a>
+      <h2>Report: <%= date %></h2>
+    </div>
     <report-viewer date="<%= date %>">
       <pre slot="raw"><%- content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') %></pre>
     </report-viewer>

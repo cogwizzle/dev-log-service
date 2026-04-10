@@ -34,6 +34,10 @@ app.get('/', (_req, res) => {
   res.render('index', { reports });
 });
 
+app.get('/notes', (_req, res) => {
+  res.render('notes');
+});
+
 app.get('/reports/:date', (req, res) => {
   const { date } = req.params;
   const report = getReport(date);

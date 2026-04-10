@@ -35,55 +35,66 @@ header {
   padding-bottom: 0;
 }
 
-header h1 {
+.site-title {
+  color: var(--color-text);
+  display: block;
   font-size: 1.75rem;
   font-weight: 700;
-  padding-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  text-decoration: none;
 }
 
-/* Tabs */
-.tab-nav {
+.site-title:hover {
+  color: var(--color-accent);
+}
+
+/* Main nav */
+.main-nav {
   display: flex;
   gap: 0;
 }
 
-.tab-nav button {
-  background: none;
-  border: none;
+.nav-link {
   border-bottom: 2px solid transparent;
-  border-radius: 0;
   color: var(--color-muted);
-  cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
   padding: 0.6rem 1.25rem;
+  text-decoration: none;
   transition: color 0.15s, border-color 0.15s;
 }
 
-.tab-nav button:hover {
-  background: none;
+.nav-link:hover {
   color: var(--color-text);
 }
 
-.tab-nav button[aria-selected="true"] {
+.nav-link--active {
   border-bottom-color: var(--color-accent);
   color: var(--color-accent);
 }
 
-[role="tabpanel"] {
+main {
   padding-top: 2rem;
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
 }
 
 .back-link {
   color: var(--color-muted);
-  display: block;
   font-size: 0.875rem;
-  margin-bottom: 0.5rem;
   text-decoration: none;
 }
 
 .back-link:hover {
   color: var(--color-accent);
+}
+
+.page-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
 }
 
 section {

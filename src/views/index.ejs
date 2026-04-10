@@ -3,58 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dev Log</title>
+  <title>Reports — Dev Log</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <header>
-    <h1>Dev Log</h1>
-    <nav class="tab-nav" role="tablist">
-      <button role="tab" aria-selected="true" aria-controls="panel-reports" id="tab-reports">Reports</button>
-      <button role="tab" aria-selected="false" aria-controls="panel-notes" id="tab-notes">Work Notes</button>
-    </nav>
-  </header>
+  <%- include('partials/header', { page: 'reports' }) %>
 
   <main>
-    <div id="panel-reports" role="tabpanel" aria-labelledby="tab-reports">
-      <section class="generate-section">
-        <h2>Generate Report</h2>
-        <report-generator></report-generator>
-      </section>
+    <section class="generate-section">
+      <h2>Generate Report</h2>
+      <report-generator></report-generator>
+    </section>
 
-      <section class="reports-section">
-        <h2>Saved Reports</h2>
-        <% if (reports.length === 0) { %>
-          <p class="empty">No reports yet. Generate one above.</p>
-        <% } else { %>
-          <report-list>
-            <ul slot="items">
-              <% reports.forEach(function(report) { %>
-                <li>
-                  <a href="/reports/<%= report.date %>"><%= report.date %></a>
-                  <time datetime="<%= new Date(report.created_at).toISOString() %>">
-                    Generated <%= new Date(report.created_at).toLocaleDateString() %>
-                  </time>
-                </li>
-              <% }); %>
-            </ul>
-          </report-list>
-        <% } %>
-      </section>
-    </div>
-
-    <div id="panel-notes" role="tabpanel" aria-labelledby="tab-notes" hidden>
-      <section class="notes-section">
-        <h2>Work Notes</h2>
-        <p class="section-desc">Track work not captured by GitHub, JIRA, or Confluence. Notes are included when generating a report.</p>
-        <work-notes-editor></work-notes-editor>
-      </section>
-    </div>
+    <section class="reports-section">
+      <h2>Saved Reports</h2>
+      <% if (reports.length === 0) { %>
+        <p class="empty">No reports yet. Generate one above.</p>
+      <% } else { %>
+        <report-list>
+          <ul>
+            <% reports.forEach(function(report) { %>
+              <li>
+                <a href="/reports/<%= report.date %>"><%= report.date %></a>
+                <time datetime="<%= new Date(report.created_at).toISOString() %>">
+                  Generated <%= new Date(report.created_at).toLocaleDateString() %>
+                </time>
+              </li>
+            <% }); %>
+          </ul>
+        </report-list>
+      <% } %>
+    </section>
   </main>
 
   <script type="module" src="/components/report-generator.js"></script>
   <script type="module" src="/components/report-list.js"></script>
-  <script type="module" src="/components/work-notes-editor.js"></script>
-  <script type="module" src="/components/tabs.js"></script>
 </body>
 </html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Work Notes — Dev Log</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <%- include('partials/header', { page: 'notes' }) %>
+
+  <main>
+    <section class="notes-section">
+      <h2>Work Notes</h2>
+      <p class="section-desc">Track work not captured by GitHub, JIRA, or Confluence. Notes are included when generating a report.</p>
+      <work-notes-editor></work-notes-editor>
+    </section>
+  </main>
+
+  <script type="module" src="/components/work-notes-editor.js"></script>
+</body>
+</html>

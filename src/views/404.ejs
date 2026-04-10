@@ -7,10 +7,7 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <header>
-    <a href="/" class="back-link">← All Reports</a>
-    <h1>Report Not Found</h1>
-  </header>
+  <%- include('partials/header', { page: 'reports' }) %>
   <main>
     <p>No report found for <strong><%= date %></strong>.</p>
     <p><a href="/">Go back</a> and generate one.</p>
