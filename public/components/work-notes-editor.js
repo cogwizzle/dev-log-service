@@ -98,7 +98,7 @@ class WorkNotesEditor extends HTMLElement {
       delBtn.className = 'btn-delete';
       delBtn.textContent = '×';
       delBtn.setAttribute('aria-label', 'Delete note');
-      delBtn.addEventListener('click', () => this._delete(note.id, tr));
+      delBtn.addEventListener('click', () => this._confirmDelete(note.id, tr, delBtn));
       tdAction.appendChild(delBtn);
 
       tr.appendChild(tdContent);
@@ -133,22 +133,68 @@ class WorkNotesEditor extends HTMLElement {
   }
 
   /**
-   * Deletes a note by ID and removes its row from the table.
+   * Progressively enhances the delete button with a two-step confirmation.
+   *
+   * On first click the button is replaced with "Confirm?" and a cancel link.
+   * If the user does not confirm within 4 seconds the button resets automatically.
    *
    * @param {number} id
    * @param {HTMLTableRowElement} tr
+   * @param {HTMLButtonElement} delBtn
    */
-  async _delete(id, tr) {
-    try {
-      const res = await fetch(`/api/notes/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete note');
-      tr.remove();
-      const remaining = this._tbody.querySelectorAll('tr').length;
-      this._empty.hidden = remaining > 0;
-      this.querySelector('.notes-table').hidden = remaining === 0;
-    } catch (err) {
-      this._showStatus(err.message, 'error');
-    }
+  _confirmDelete(id, tr, delBtn) {
+    // Already in confirm state — ignore double-clicks
+    if (delBtn.dataset.confirming) return;
+    delBtn.dataset.confirming = '1';
+
+    const original = delBtn.textContent;
+    delBtn.textContent = 'Confirm?';
+    delBtn.classList.add('btn-delete--confirming');
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn-cancel';
+    cancelBtn.textContent = 'Cancel';
+    delBtn.insertAdjacentElement('afterend', cancelBtn);
+
+    /** Resets the button back to its original state. */
+    const reset = () => {
+      clearTimeout(timer);
+      delBtn.textContent = original;
+      delBtn.classList.remove('btn-delete--confirming');
+      delete delBtn.dataset.confirming;
+      cancelBtn.remove();
+    };
+
+    // Auto-reset after 4 seconds with no action
+    const timer = setTimeout(reset, 4000);
+
+    cancelBtn.addEventListener('click', reset);
+
+    // Defer attaching the confirm listener so it doesn't fire on the current
+    // click event that triggered the confirming state.
+    setTimeout(() => {
+    delBtn.addEventListener(
+      'click',
+      async () => {
+        clearTimeout(timer);
+        cancelBtn.remove();
+        delBtn.disabled = true;
+        delBtn.textContent = '…';
+        try {
+          const res = await fetch(`/api/notes/${id}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error('Failed to delete note');
+          tr.remove();
+          const remaining = this._tbody.querySelectorAll('tr').length;
+          this._empty.hidden = remaining > 0;
+          this.querySelector('.notes-table').hidden = remaining === 0;
+        } catch (err) {
+          reset();
+          this._showStatus(err.message, 'error');
+        }
+      },
+      { once: true }
+    );
+    }, 0);
   }
 
   /**
