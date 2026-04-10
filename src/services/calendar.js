@@ -95,17 +95,20 @@ function parseICS(icsData) {
 }
 
 /**
- * Returns true if the meeting starts during work hours (9 AM – 5 PM UTC).
+ * Returns true if the meeting starts during work hours in the configured timezone.
  *
- * ICS timestamps are stored in UTC so we compare using UTC hour methods to
- * avoid the event shifting to the wrong date when the server's local timezone
- * differs from UTC.
+ * Uses TIMEZONE env var (default: America/New_York) so that ICS timestamps
+ * stored in UTC are converted to local time before the 9 AM – 5 PM check.
  *
  * @param {Date} start
  * @returns {boolean}
  */
 function isWorkHours(start) {
-  const hour = start.getUTCHours();
+  const tz = process.env.TIMEZONE || 'America/New_York';
+  const hour = parseInt(
+    start.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: tz }),
+    10
+  );
   return hour >= 9 && hour < 17;
 }
 
@@ -132,8 +135,9 @@ export async function getCalendarActivity(date) {
   const icsData = await fetchICS(icsUrl);
   const allEvents = parseICS(icsData);
 
+  const tz = process.env.TIMEZONE || 'America/New_York';
   const meetings = allEvents.filter((e) => {
-    const eventDate = e.start.toISOString().split('T')[0];
+    const eventDate = e.start.toLocaleDateString('en-CA', { timeZone: tz }); // en-CA gives YYYY-MM-DD format
     return eventDate === date && isWorkHours(e.start);
   });
 

@@ -30,6 +30,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   getCached.mockReturnValue(null);
   process.env.CALENDAR_ICS_URL = 'https://example.com/calendar.ics';
+  process.env.TIMEZONE = 'America/New_York';
 });
 
 afterEach(() => {
