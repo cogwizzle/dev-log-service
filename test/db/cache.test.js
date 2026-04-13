@@ -1,21 +1,27 @@
 import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import {
-  getCached,
-  setCached,
-  saveReport,
-  getReport,
-  listReports,
   addNote,
   deleteNote,
+  deleteSummary,
+  getCached,
   getNotesByDate,
   getNotesAsText,
+  getReport,
+  getSummary,
+  listReports,
+  listSummaries,
+  saveSummary,
+  saveReport,
+  setCached,
 } from '../../src/db/cache.js';
 import { getDb, closeDb } from '../../src/db/index.js';
 
 beforeEach(() => {
   // Clear all tables between tests for a clean slate
   const db = getDb();
-  db.exec('DELETE FROM activity_cache; DELETE FROM notes; DELETE FROM reports;');
+  db.exec(
+    'DELETE FROM activity_cache; DELETE FROM notes; DELETE FROM reports; DELETE FROM summaries;'
+  );
 });
 
 afterAll(() => {
@@ -123,5 +129,42 @@ describe('addNote / deleteNote / getNotesByDate / getNotesAsText', () => {
 
   it('returns empty string when no notes exist', () => {
     expect(getNotesAsText('2026-01-01')).toBe('');
+  });
+});
+
+describe('saveSummary / getSummary / listSummaries / deleteSummary', () => {
+  it('returns null for missing summary', () => {
+    expect(getSummary(99999)).toBeNull();
+  });
+
+  it('saves and retrieves a summary', () => {
+    const row = saveSummary('Week 1', '2026-01-01', '2026-01-05', '# Week 1 Summary');
+    expect(row.id).toBeGreaterThan(0);
+    const fetched = getSummary(row.id);
+    expect(fetched).not.toBeNull();
+    expect(fetched.title).toBe('Week 1');
+    expect(fetched.from_date).toBe('2026-01-01');
+    expect(fetched.to_date).toBe('2026-01-05');
+    expect(fetched.content).toBe('# Week 1 Summary');
+  });
+
+  it('lists summaries ordered by creation date descending', () => {
+    saveSummary('First', '2026-01-01', '2026-01-05', 'a');
+    saveSummary('Second', '2026-01-06', '2026-01-10', 'b');
+    const list = listSummaries();
+    expect(list).toHaveLength(2);
+    const titles = list.map((s) => s.title);
+    expect(titles).toContain('First');
+    expect(titles).toContain('Second');
+  });
+
+  it('deletes a summary by id', () => {
+    const row = saveSummary('To Delete', '2026-01-01', '2026-01-01', 'x');
+    expect(deleteSummary(row.id)).toBe(true);
+    expect(getSummary(row.id)).toBeNull();
+  });
+
+  it('returns false when deleting nonexistent id', () => {
+    expect(deleteSummary(99999)).toBe(false);
   });
 });

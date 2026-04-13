@@ -133,6 +133,86 @@ export function deleteNote(id) {
 }
 
 /**
+ * @typedef {Object} SummaryRow
+ * @property {number} id
+ * @property {string} title
+ * @property {string} from_date
+ * @property {string} to_date
+ * @property {string} content
+ * @property {number} created_at
+ */
+
+/**
+ * Saves a generated range summary to the database.
+ *
+ * @param {string} title
+ * @param {string} fromDate - YYYY-MM-DD
+ * @param {string} toDate - YYYY-MM-DD
+ * @param {string} content - Markdown content
+ * @returns {SummaryRow} The inserted row.
+ */
+export function saveSummary(title, fromDate, toDate, content) {
+  const db = getDb();
+  const created_at = Date.now();
+  const result = db
+    .prepare(
+      'INSERT INTO summaries (content, created_at, from_date, title, to_date) VALUES (?, ?, ?, ?, ?)'
+    )
+    .run(content, created_at, fromDate, title, toDate);
+  return {
+    content,
+    created_at,
+    from_date: fromDate,
+    id: Number(result.lastInsertRowid),
+    title,
+    to_date: toDate,
+  };
+}
+
+/**
+ * Retrieves a summary by ID.
+ *
+ * @param {number} id
+ * @returns {SummaryRow | null}
+ */
+export function getSummary(id) {
+  const db = getDb();
+  return /** @type {SummaryRow | null} */ (
+    db
+      .prepare(
+        'SELECT id, title, from_date, to_date, content, created_at FROM summaries WHERE id = ?'
+      )
+      .get(id) ?? null
+  );
+}
+
+/**
+ * Lists all summaries ordered by creation date descending.
+ *
+ * @returns {Array<{ id: number, title: string, from_date: string, to_date: string, created_at: number }>}
+ */
+export function listSummaries() {
+  const db = getDb();
+  return /** @type {Array<{ id: number, title: string, from_date: string, to_date: string, created_at: number }>} */ (
+    db
+      .prepare(
+        'SELECT id, title, from_date, to_date, created_at FROM summaries ORDER BY created_at DESC'
+      )
+      .all()
+  );
+}
+
+/**
+ * Deletes a summary by ID.
+ *
+ * @param {number} id
+ * @returns {boolean}
+ */
+export function deleteSummary(id) {
+  return getDb().prepare('DELETE FROM summaries WHERE id = ?').run(id).changes > 0;
+}
+
+/**
  * Returns all notes for a date as a single newline-separated string,
  * suitable for inclusion in the AI summary prompt.
  *

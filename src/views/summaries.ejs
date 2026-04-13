@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Summaries — Dev Log</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <%- include('partials/header', { page: 'summaries' }) %>
+
+  <main>
+    <section class="generate-section">
+      <h2>Generate Summary</h2>
+      <p class="section-desc">Synthesize all daily reports between two dates into a single high-level summary.</p>
+      <summary-generator></summary-generator>
+    </section>
+
+    <section class="summaries-section">
+      <h2>Saved Summaries</h2>
+      <% if (summaries.length === 0) { %>
+        <p class="empty">No summaries yet. Generate one above.</p>
+      <% } else { %>
+        <table class="summaries-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Generated</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% summaries.forEach(function(s) { %>
+              <tr>
+                <td><a href="/summaries/<%= s.id %>"><%= s.title %></a></td>
+                <td><%= s.from_date %></td>
+                <td><%= s.to_date %></td>
+                <td><time datetime="<%= new Date(s.created_at).toISOString() %>"><%= new Date(s.created_at).toLocaleDateString() %></time></td>
+                <td class="summary-action">
+                  <button class="btn-delete" data-id="<%= s.id %>" aria-label="Delete summary">×</button>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      <% } %>
+    </section>
+  </main>
+
+  <script type="module" src="/components/summary-generator.js"></script>
+  <script type="module" src="/components/summary-delete.js"></script>
+</body>
+</html>

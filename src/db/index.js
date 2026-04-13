@@ -53,6 +53,15 @@ function migrate(database) {
       created_at INTEGER NOT NULL,
       date       TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS summaries (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      content    TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      from_date  TEXT NOT NULL,
+      title      TEXT NOT NULL,
+      to_date    TEXT NOT NULL
+    );
   `;
 
   if (/DROP\s+TABLE/i.test(sql)) {

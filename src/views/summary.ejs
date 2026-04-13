@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= summary.title %> — Dev Log</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <%- include('partials/header', { page: 'summaries' }) %>
+
+  <main>
+    <div class="page-header">
+      <a href="/summaries" class="back-link">← All Summaries</a>
+      <h2><%= summary.title %></h2>
+      <p class="summary-meta"><%= summary.from_date %> – <%= summary.to_date %></p>
+    </div>
+
+    <report-viewer>
+      <pre slot="raw"><%- summary.content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') %></pre>
+    </report-viewer>
+  </main>
+
+  <script type="module" src="/components/report-viewer.js"></script>
+</body>
+</html>

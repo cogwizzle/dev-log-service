@@ -8,8 +8,9 @@ import jiraRouter from './routes/jira.js';
 import confluenceRouter from './routes/confluence.js';
 import notesRouter from './routes/notes.js';
 import reportsRouter from './routes/reports.js';
+import summariesRouter from './routes/summaries.js';
 import { startScheduler } from './cron/scheduler.js';
-import { getReport, listReports } from './db/cache.js';
+import { getReport, getSummary, listReports, listSummaries } from './db/cache.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -22,6 +23,7 @@ app.set('views', path.join(__dirname, 'views'));
 
 // API routes
 app.use('/api/calendar', calendarRouter);
+app.use('/api/summaries', summariesRouter);
 app.use('/api/github', githubRouter);
 app.use('/api/jira', jiraRouter);
 app.use('/api/confluence', confluenceRouter);
@@ -36,6 +38,19 @@ app.get('/', (_req, res) => {
 
 app.get('/notes', (_req, res) => {
   res.render('notes');
+});
+
+app.get('/summaries', (_req, res) => {
+  res.render('summaries', { summaries: listSummaries() });
+});
+
+app.get('/summaries/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const summary = getSummary(id);
+  if (!summary) {
+    return res.status(404).render('404', { date: `summary #${id}` });
+  }
+  return res.render('summary', { summary });
 });
 
 app.get('/reports/:date', (req, res) => {
