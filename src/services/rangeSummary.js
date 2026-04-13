@@ -35,37 +35,39 @@ function buildPrompt(title, from, to, reports) {
 
   lines.push(`Generate a summary report titled "${title}" covering ${from} to ${to}.`);
   lines.push('');
-  lines.push('Use this Markdown format:');
+  lines.push('Use this exact Markdown format:');
   lines.push('');
   lines.push('```markdown');
   lines.push(`# ${title}`);
   lines.push(`_${from} – ${to}_`);
   lines.push('');
-  lines.push('## Overview');
-  lines.push('<2-3 sentence narrative of the period>');
+  lines.push('## Launches / Deliverables');
+  lines.push(
+    '<Completed work shipped or delivered: PRs merged, tickets closed, features landed, docs published>'
+  );
   lines.push('');
-  lines.push('## Key Accomplishments');
-  lines.push('<bullet list of the most significant completed work>');
+  lines.push('## Quality / Operational Impact');
+  lines.push(
+    '<Bug fixes, reliability improvements, performance work, on-call actions, process improvements, test coverage>'
+  );
   lines.push('');
-  lines.push('## Code Contributions');
-  lines.push('<PRs authored, reviewed, commits>');
+  lines.push('## Collaboration / Cross-Team Impact');
+  lines.push(
+    '<Code reviews, design discussions, RFC participation, mentoring, cross-team syncs, unblocking others>'
+  );
   lines.push('');
-  lines.push('## Ticket Work');
-  lines.push('<JIRA tickets created, completed, in progress>');
-  lines.push('');
-  lines.push('## Meetings & Collaboration');
-  lines.push('<notable meetings, design discussions, reviews, mentoring>');
-  lines.push('');
-  lines.push('## Carryover / In Progress');
-  lines.push('<work started but not yet completed>');
+  lines.push('## Learning / Growth');
+  lines.push('<Investigations, spikes, new skills, knowledge sharing, documentation written>');
   lines.push('```');
   lines.push('');
   lines.push('Rules:');
-  lines.push('- Only include sections that have data.');
+  lines.push(
+    '- Always include all four sections, even if light — note "None this period." if truly empty.'
+  );
   lines.push('- Use reference-style Markdown links collected at the bottom.');
   lines.push('- Deduplicate: if the same PR or ticket appears on multiple days, mention it once.');
   lines.push('- Prioritise completed/shipped work over in-progress work.');
-  lines.push('- Be concise — this is a summary, not a transcript.');
+  lines.push('- Be concise and outcome-focused — this is a performance summary, not a transcript.');
   lines.push('');
   lines.push(`## Daily Reports (${reports.length} days)`);
   lines.push('');
