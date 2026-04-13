@@ -86,7 +86,8 @@ function parseICS(icsData) {
       } else if (key.startsWith('DTEND')) {
         current.end = parseICSDate(value);
       } else if (key === 'SUMMARY') {
-        current.title = value;
+        // Strip non-ASCII characters (e.g. Chinese characters from calendar imports)
+        current.title = value.replace(/[^\x00-\x7F]/g, '').trim() || 'Busy';
       }
     }
   }
