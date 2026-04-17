@@ -501,6 +501,18 @@ summary-generator input[type="text"]:focus {
   margin-top: 0.5rem;
 }
 
+/* Disclaimer */
+.disclaimer {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius);
+  color: #92400e;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+}
+
 /* Backfill form */
 .section-description {
   color: var(--color-muted);

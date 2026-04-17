@@ -16,6 +16,11 @@
       <p class="summary-meta"><%= summary.from_date %> – <%= summary.to_date %></p>
     </div>
 
+    <aside class="disclaimer" role="note">
+      <strong>Heads up:</strong> This summary is an AI-generated starting point based on your activity data.
+      It may be incomplete or inaccurate. Review and revise it before sharing or using it in a performance context.
+    </aside>
+
     <report-viewer>
       <pre slot="raw"><%- summary.content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') %></pre>
     </report-viewer>
