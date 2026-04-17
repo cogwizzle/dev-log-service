@@ -5,6 +5,7 @@ import AnthropicBedrock from '@anthropic-ai/bedrock-sdk';
  * @typedef {import('./jira.js').JiraActivity} JiraActivity
  * @typedef {import('./confluence.js').ConfluenceActivity} ConfluenceActivity
  * @typedef {import('./calendar.js').CalendarActivity} CalendarActivity
+ * @typedef {import('./pagerduty.js').PagerDutyActivity} PagerDutyActivity
  */
 
 /**
@@ -14,6 +15,7 @@ import AnthropicBedrock from '@anthropic-ai/bedrock-sdk';
  * @property {GithubActivity} github
  * @property {JiraActivity} jira
  * @property {string} [notes] - Freeform work notes for the day.
+ * @property {PagerDutyActivity} [pagerduty]
  */
 
 const client = new AnthropicBedrock();
@@ -26,7 +28,7 @@ const client = new AnthropicBedrock();
  * @returns {string}
  */
 function buildPrompt(date, activity) {
-  const { calendar, confluence, github, jira, notes } = activity;
+  const { calendar, confluence, github, jira, notes, pagerduty } = activity;
 
   const lines = [`Generate a developer activity report in Markdown for ${date}.`];
   lines.push('');
@@ -133,6 +135,37 @@ function buildPrompt(date, activity) {
   if (confluence.comments.length) {
     lines.push(`**Comments (${confluence.comments.length}):**`);
     confluence.comments.forEach((c) => lines.push(`- Comment on [${c.pageTitle}](${c.pageUrl})`));
+  }
+
+  if (pagerduty) {
+    const total =
+      pagerduty.acknowledgedIncidents.length +
+      pagerduty.resolvedIncidents.length +
+      pagerduty.triggeredIncidents.length;
+    lines.push('');
+    lines.push('### PagerDuty');
+    if (total === 0) {
+      lines.push('No PagerDuty incidents for this date.');
+    } else {
+      if (pagerduty.triggeredIncidents.length) {
+        lines.push(`**Triggered (${pagerduty.triggeredIncidents.length}):**`);
+        pagerduty.triggeredIncidents.forEach((i) =>
+          lines.push(`- [${i.title}](${i.url}) [${i.serviceName}] [${i.urgency} urgency]`)
+        );
+      }
+      if (pagerduty.acknowledgedIncidents.length) {
+        lines.push(`**Acknowledged (${pagerduty.acknowledgedIncidents.length}):**`);
+        pagerduty.acknowledgedIncidents.forEach((i) =>
+          lines.push(`- [${i.title}](${i.url}) [${i.serviceName}] [${i.urgency} urgency]`)
+        );
+      }
+      if (pagerduty.resolvedIncidents.length) {
+        lines.push(`**Resolved (${pagerduty.resolvedIncidents.length}):**`);
+        pagerduty.resolvedIncidents.forEach((i) =>
+          lines.push(`- [${i.title}](${i.url}) [${i.serviceName}] [${i.urgency} urgency]`)
+        );
+      }
+    }
   }
 
   return lines.join('\n');

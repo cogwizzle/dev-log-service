@@ -3,10 +3,11 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import calendarRouter from './routes/calendar.js';
+import confluenceRouter from './routes/confluence.js';
 import githubRouter from './routes/github.js';
 import jiraRouter from './routes/jira.js';
-import confluenceRouter from './routes/confluence.js';
 import notesRouter from './routes/notes.js';
+import pagerdutyRouter from './routes/pagerduty.js';
 import reportsRouter from './routes/reports.js';
 import summariesRouter from './routes/summaries.js';
 import { startScheduler } from './cron/scheduler.js';
@@ -23,12 +24,13 @@ app.set('views', path.join(__dirname, 'views'));
 
 // API routes
 app.use('/api/calendar', calendarRouter);
-app.use('/api/summaries', summariesRouter);
+app.use('/api/confluence', confluenceRouter);
 app.use('/api/github', githubRouter);
 app.use('/api/jira', jiraRouter);
-app.use('/api/confluence', confluenceRouter);
 app.use('/api/notes', notesRouter);
+app.use('/api/pagerduty', pagerdutyRouter);
 app.use('/api/reports', reportsRouter);
+app.use('/api/summaries', summariesRouter);
 
 // UI routes
 app.get('/', (_req, res) => {

@@ -1,17 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('../../src/services/calendar.js');
+vi.mock('../../src/services/confluence.js');
 vi.mock('../../src/services/github.js');
 vi.mock('../../src/services/jira.js');
-vi.mock('../../src/services/confluence.js');
+vi.mock('../../src/services/pagerduty.js');
 vi.mock('../../src/services/summary.js');
 vi.mock('../../src/db/cache.js');
 vi.mock('fs');
 
 import { getCalendarActivity } from '../../src/services/calendar.js';
+import { getConfluenceActivity } from '../../src/services/confluence.js';
 import { getGithubActivity } from '../../src/services/github.js';
 import { getJiraActivity } from '../../src/services/jira.js';
-import { getConfluenceActivity } from '../../src/services/confluence.js';
+import { getPagerDutyActivity } from '../../src/services/pagerduty.js';
 import { generateSummary } from '../../src/services/summary.js';
 import { getNotesAsText, getReport, saveReport } from '../../src/db/cache.js';
 import fs from 'fs';
@@ -22,9 +24,12 @@ import {
   previousBusinessDay,
 } from '../../src/services/report.js';
 
+const emptyPagerDuty = { acknowledgedIncidents: [], resolvedIncidents: [], triggeredIncidents: [] };
+
 beforeEach(() => {
   vi.clearAllMocks();
   getNotesAsText.mockReturnValue('');
+  getPagerDutyActivity.mockResolvedValue(emptyPagerDuty);
   getReport.mockReturnValue(null);
   fs.mkdirSync = vi.fn();
   fs.writeFileSync = vi.fn();
