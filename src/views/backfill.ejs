@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Backfill — Dev Log</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <%- include('partials/header', { page: 'backfill' }) %>
+
+  <main>
+    <section class="generate-section">
+      <h2>Backfill Reports</h2>
+      <p class="section-description">Generate reports for a range of past business days to populate your history.</p>
+      <backfill-form>
+        <form method="POST" action="/api/reports/backfill">
+          <label>
+            From
+            <input type="date" name="from" value="<%= backfillFrom %>" required />
+          </label>
+          <label>
+            To
+            <input type="date" name="to" value="<%= backfillTo %>" required />
+          </label>
+          <label style="flex-direction: row; align-items: center; gap: 0.4rem;">
+            <input type="checkbox" name="force" />
+            Force regenerate existing
+          </label>
+          <button type="submit">Run Backfill</button>
+        </form>
+        <p class="status-message" aria-live="polite"></p>
+        <pre class="backfill-log" hidden></pre>
+      </backfill-form>
+    </section>
+  </main>
+
+  <script type="module" src="/components/backfill-form.js"></script>
+</body>
+</html>

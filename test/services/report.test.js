@@ -15,7 +15,7 @@ import { getConfluenceActivity } from '../../src/services/confluence.js';
 import { generateSummary } from '../../src/services/summary.js';
 import { getNotesAsText, getReport, saveReport } from '../../src/db/cache.js';
 import fs from 'fs';
-import { generateReport, previousBusinessDay } from '../../src/services/report.js';
+import { backfillReports, businessDaysInRange, generateReport, previousBusinessDay } from '../../src/services/report.js';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -44,6 +44,106 @@ describe('previousBusinessDay', () => {
 
   it('returns Friday for Sunday', () => {
     expect(previousBusinessDay(new Date('2026-04-05T12:00:00'))).toBe('2026-04-03');
+  });
+});
+
+describe('businessDaysInRange', () => {
+  it('returns only weekdays', () => {
+    // 2026-04-13 (Mon) to 2026-04-17 (Fri)
+    const result = businessDaysInRange('2026-04-13', '2026-04-17');
+    expect(result).toEqual(['2026-04-13', '2026-04-14', '2026-04-15', '2026-04-16', '2026-04-17']);
+  });
+
+  it('skips Saturday and Sunday', () => {
+    // 2026-04-10 (Fri) to 2026-04-13 (Mon)
+    const result = businessDaysInRange('2026-04-10', '2026-04-13');
+    expect(result).toEqual(['2026-04-10', '2026-04-13']);
+  });
+
+  it('returns a single day when from equals to', () => {
+    expect(businessDaysInRange('2026-04-13', '2026-04-13')).toEqual(['2026-04-13']);
+  });
+
+  it('returns empty array when from is after to', () => {
+    expect(businessDaysInRange('2026-04-17', '2026-04-13')).toEqual([]);
+  });
+
+  it('returns empty array for a weekend-only range', () => {
+    // 2026-04-11 (Sat) to 2026-04-12 (Sun)
+    expect(businessDaysInRange('2026-04-11', '2026-04-12')).toEqual([]);
+  });
+});
+
+describe('backfillReports', () => {
+  it('skips dates that already have a report', async () => {
+    getReport.mockReturnValue({ content: '# Existing', date: '2026-04-14' });
+    const progress = [];
+
+    const totals = await backfillReports('2026-04-14', '2026-04-14', {
+      onProgress: (p) => progress.push(p),
+    });
+
+    expect(totals).toEqual({ errors: 0, generated: 0, skipped: 1 });
+    expect(progress).toEqual([{ date: '2026-04-14', reason: 'already exists', status: 'skipped' }]);
+    expect(getGithubActivity).not.toHaveBeenCalled();
+  });
+
+  it('generates a report for dates without existing reports', async () => {
+    getReport.mockReturnValue(null);
+    getCalendarActivity.mockResolvedValue(emptyCalendar);
+    getGithubActivity.mockReturnValue(emptyGithub);
+    getJiraActivity.mockResolvedValue(emptyJira);
+    getConfluenceActivity.mockResolvedValue(emptyConfluence);
+    generateSummary.mockResolvedValue('# New');
+    const progress = [];
+
+    const totals = await backfillReports('2026-04-14', '2026-04-14', {
+      onProgress: (p) => progress.push(p),
+    });
+
+    expect(totals).toEqual({ errors: 0, generated: 1, skipped: 0 });
+    expect(progress).toEqual([{ date: '2026-04-14', status: 'generated' }]);
+  });
+
+  it('records errors for failed dates and continues', async () => {
+    getReport.mockReturnValue(null);
+    getGithubActivity.mockReturnValue(emptyGithub);
+    getCalendarActivity.mockResolvedValue(emptyCalendar);
+    getJiraActivity.mockResolvedValue(emptyJira);
+    getConfluenceActivity.mockResolvedValue(emptyConfluence);
+    generateSummary.mockRejectedValue(new Error('Bedrock down'));
+    const progress = [];
+
+    const totals = await backfillReports('2026-04-14', '2026-04-14', {
+      onProgress: (p) => progress.push(p),
+    });
+
+    expect(totals).toEqual({ errors: 1, generated: 0, skipped: 0 });
+    expect(progress[0].status).toBe('error');
+    expect(progress[0].reason).toContain('Bedrock down');
+  });
+
+  it('force-regenerates existing reports when force is true', async () => {
+    getReport.mockReturnValue({ content: '# Old', date: '2026-04-14' });
+    getCalendarActivity.mockResolvedValue(emptyCalendar);
+    getGithubActivity.mockReturnValue(emptyGithub);
+    getJiraActivity.mockResolvedValue(emptyJira);
+    getConfluenceActivity.mockResolvedValue(emptyConfluence);
+    generateSummary.mockResolvedValue('# Refreshed');
+
+    const totals = await backfillReports('2026-04-14', '2026-04-14', { force: true });
+    expect(totals).toEqual({ errors: 0, generated: 1, skipped: 0 });
+  });
+
+  it('skips weekend dates', async () => {
+    const progress = [];
+    // 2026-04-11 (Sat) to 2026-04-12 (Sun)
+    const totals = await backfillReports('2026-04-11', '2026-04-12', {
+      onProgress: (p) => progress.push(p),
+    });
+
+    expect(totals).toEqual({ errors: 0, generated: 0, skipped: 0 });
+    expect(progress).toHaveLength(0);
   });
 });
 

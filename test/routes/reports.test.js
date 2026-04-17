@@ -7,13 +7,14 @@ vi.mock('../../src/db/cache.js', () => ({
   saveReport: vi.fn(),
 }));
 vi.mock('../../src/services/report.js', () => ({
+  backfillReports: vi.fn(),
   generateReport: vi.fn(),
   previousBusinessDay: vi.fn(() => '2026-01-01'),
 }));
 vi.mock('../../src/cron/scheduler.js', () => ({ startScheduler: vi.fn() }));
 
 const { getReport, listReports } = await import('../../src/db/cache.js');
-const { generateReport } = await import('../../src/services/report.js');
+const { backfillReports, generateReport } = await import('../../src/services/report.js');
 
 // Import app after mocks are set up
 const { default: app } = await import('../../src/server.js');
@@ -82,5 +83,66 @@ describe('POST /api/reports/generate', () => {
     const res = await request(app).post('/api/reports/generate').send({ date: '2026-01-01' });
     expect(res.status).toBe(500);
     expect(res.body.error).toContain('API down');
+  });
+});
+
+describe('POST /api/reports/backfill', () => {
+  it('returns 400 when from is missing', async () => {
+    const res = await request(app).post('/api/reports/backfill').send({ to: '2026-01-10' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('from');
+  });
+
+  it('returns 400 when to is missing', async () => {
+    const res = await request(app).post('/api/reports/backfill').send({ from: '2026-01-01' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('to');
+  });
+
+  it('returns 400 when from is invalid', async () => {
+    const res = await request(app)
+      .post('/api/reports/backfill')
+      .send({ from: 'bad', to: '2026-01-10' });
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 when from is after to', async () => {
+    const res = await request(app)
+      .post('/api/reports/backfill')
+      .send({ from: '2026-01-10', to: '2026-01-01' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('from must be before');
+  });
+
+  it('streams NDJSON progress and done summary', async () => {
+    backfillReports.mockImplementation(async (_from, _to, opts) => {
+      opts.onProgress({ date: '2026-01-02', status: 'generated' });
+      opts.onProgress({ date: '2026-01-05', reason: 'already exists', status: 'skipped' });
+      return { errors: 0, generated: 1, skipped: 1 };
+    });
+
+    const res = await request(app)
+      .post('/api/reports/backfill')
+      .send({ from: '2026-01-01', to: '2026-01-05' });
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toContain('application/x-ndjson');
+
+    const lines = res.text.trim().split('\n').map((l) => JSON.parse(l));
+    expect(lines[0]).toEqual({ date: '2026-01-02', status: 'generated' });
+    expect(lines[1]).toEqual({ date: '2026-01-05', reason: 'already exists', status: 'skipped' });
+    expect(lines[2]).toEqual({ done: true, errors: 0, generated: 1, skipped: 1 });
+  });
+
+  it('streams error done line when backfill throws', async () => {
+    backfillReports.mockRejectedValue(new Error('DB locked'));
+
+    const res = await request(app)
+      .post('/api/reports/backfill')
+      .send({ from: '2026-01-01', to: '2026-01-02' });
+
+    expect(res.status).toBe(200);
+    const lines = res.text.trim().split('\n').map((l) => JSON.parse(l));
+    expect(lines[0]).toMatchObject({ done: true, error: expect.stringContaining('DB locked') });
   });
 });

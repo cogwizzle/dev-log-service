@@ -101,6 +101,71 @@ export async function generateReport(date, options = {}) {
 }
 
 /**
+ * @typedef {Object} BackfillProgress
+ * @property {string} date - The date being processed.
+ * @property {'skipped' | 'generated' | 'error'} status - Outcome for this date.
+ * @property {string} [reason] - Human-readable detail (e.g. "already exists", error message).
+ */
+
+/**
+ * Returns all business days (Mon–Fri) between from and to inclusive.
+ *
+ * @param {string} from - YYYY-MM-DD
+ * @param {string} to - YYYY-MM-DD
+ * @returns {string[]}
+ */
+export function businessDaysInRange(from, to) {
+  const dates = [];
+  const cursor = new Date(`${from}T12:00:00Z`);
+  const end = new Date(`${to}T12:00:00Z`);
+  while (cursor <= end) {
+    const day = cursor.getUTCDay();
+    if (day !== 0 && day !== 6) {
+      dates.push(cursor.toISOString().split('T')[0]);
+    }
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  return dates;
+}
+
+/**
+ * Generates reports for every business day in the given date range.
+ *
+ * Skips dates that already have a saved report unless `force` is true. Calls
+ * `onProgress` after each date so callers can stream results to clients.
+ *
+ * @param {string} from - Start date in YYYY-MM-DD format.
+ * @param {string} to - End date in YYYY-MM-DD format.
+ * @param {{ force?: boolean, onProgress?: (p: BackfillProgress) => void }} [options]
+ * @returns {Promise<{ errors: number, generated: number, skipped: number }>}
+ */
+export async function backfillReports(from, to, options = {}) {
+  const dates = businessDaysInRange(from, to);
+  let errors = 0;
+  let generated = 0;
+  let skipped = 0;
+
+  for (const date of dates) {
+    if (!options.force && getReport(date)) {
+      options.onProgress?.({ date, reason: 'already exists', status: 'skipped' });
+      skipped++;
+      continue;
+    }
+
+    try {
+      await generateReport(date, { force: options.force });
+      options.onProgress?.({ date, status: 'generated' });
+      generated++;
+    } catch (err) {
+      options.onProgress?.({ date, reason: String(err), status: 'error' });
+      errors++;
+    }
+  }
+
+  return { errors, generated, skipped };
+}
+
+/**
  * Returns the previous business day date string relative to the given date.
  *
  * Monday returns Friday. Other weekdays return the day before.

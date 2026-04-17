@@ -36,6 +36,12 @@ app.get('/', (_req, res) => {
   res.render('index', { reports });
 });
 
+app.get('/backfill', (_req, res) => {
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
+  res.render('backfill', { backfillFrom: thirtyDaysAgo, backfillTo: yesterday });
+});
+
 app.get('/notes', (_req, res) => {
   res.render('notes');
 });
