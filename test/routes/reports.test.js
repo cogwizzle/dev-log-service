@@ -128,7 +128,10 @@ describe('POST /api/reports/backfill', () => {
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toContain('application/x-ndjson');
 
-    const lines = res.text.trim().split('\n').map((l) => JSON.parse(l));
+    const lines = res.text
+      .trim()
+      .split('\n')
+      .map((l) => JSON.parse(l));
     expect(lines[0]).toEqual({ date: '2026-01-02', status: 'generated' });
     expect(lines[1]).toEqual({ date: '2026-01-05', reason: 'already exists', status: 'skipped' });
     expect(lines[2]).toEqual({ done: true, errors: 0, generated: 1, skipped: 1 });
@@ -142,7 +145,10 @@ describe('POST /api/reports/backfill', () => {
       .send({ from: '2026-01-01', to: '2026-01-02' });
 
     expect(res.status).toBe(200);
-    const lines = res.text.trim().split('\n').map((l) => JSON.parse(l));
+    const lines = res.text
+      .trim()
+      .split('\n')
+      .map((l) => JSON.parse(l));
     expect(lines[0]).toMatchObject({ done: true, error: expect.stringContaining('DB locked') });
   });
 });
